@@ -1,5 +1,5 @@
 from helpers.pw_page_actions import *
-from locators.orange_hrm_locators import *
+from locators.web.orange_hrm_locators import *
 
 def login_to_orange_hrm(page, username: str, password: str):
     """
