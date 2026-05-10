@@ -1,0 +1,11 @@
+{
+    "forget_password_url": "https://opensource-demo.orangehrmlive.com/web/index.php/auth/requestPasswordResetCode",
+    "invalid_username": "invalid_user",
+    "invalid_password": "invalid_password",
+    "dashboard_page_url": "https://opensource-demo.orangehrmlive.com/web/index.php/dashboard/index",
+    "username": "Admin",
+    "password": "admin123",
+    "dashboard_page_title": "OrangeHRM",
+    "invalid_login_error_message": "Invalid credentials"
+
+}
