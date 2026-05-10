@@ -1,6 +1,6 @@
 import pytest
 from playwright.sync_api import expect, Page
-from pages.pw_login_page import *
+from pages.web.pw_login_page import *
 
 orange_hrm_data = load_test_data("../testdata/orange_hrm_data.json")
 
