@@ -11,7 +11,6 @@ def login_to_orange_hrm(page, username: str, password: str):
        page.locator(username_input_box).fill(username)
        page.locator(password_input_box).fill(password)
        page.locator(login_btn).click()
-       page.wait_for_load_state("load")
     else:
        raise Exception("Login page did not load properly - username input box not visible.")
 
@@ -29,3 +28,16 @@ def logout_from_orange_hrm(page):
     else:
         raise Exception("User profile dropdown not visible - logout failed.")
     
+
+def verify_forgot_password_functionality(page):
+    """
+    Verifies the forgot password link and popup functionality.
+    """
+    page.get_by_text(forgot_password_link_text).wait_for(state="visible")
+    if page.get_by_text(forgot_password_link_text).is_visible():
+        page.get_by_text(forgot_password_link_text).click()
+        page.get_by_role("heading", name=reset_password_popup_heading_text).wait_for(state="visible")
+        if not page.get_by_role("heading", name=reset_password_popup_heading_text).is_visible():
+            raise Exception("Reset Password popup did not appear after clicking forgot password link.")
+    else:
+        raise Exception("Forgot password link not visible on login page.")
