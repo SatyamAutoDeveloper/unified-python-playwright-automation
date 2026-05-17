@@ -6,6 +6,9 @@
     "username": "Admin",
     "password": "admin123",
     "dashboard_page_title": "OrangeHRM",
-    "invalid_login_error_message": "Invalid credentials"
+    "invalid_login_error_message": "Invalid credentials",
+    "user_profile_dropdown_list_text": ["About", "Support", "Change Password", "Logout"],
+    "pim_page_url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewEmployeeList",
+    "side_bar_search_text": "Leave"
 
 }
