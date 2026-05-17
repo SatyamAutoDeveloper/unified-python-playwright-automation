@@ -19,3 +19,57 @@ def test_verify_side_bar_functionality(page: Page, load_base_url):
     
     # Verify the side bar functionality
     verify_side_bar_functionality(page)
+
+
+@pytest.mark.positive
+def test_navigate_to_pim_page(page: Page, load_base_url):
+    """
+    Test to verify navigation to the PIM page from the dashboard.
+    """
+    load_base_url
+    # Perform login using the login page function
+    login_to_orange_hrm(page, orange_hrm_data["username"], orange_hrm_data["password"])
+    
+    # Verify that we are on the dashboard page after login
+    expect(page).to_have_url(orange_hrm_data["dashboard_page_url"])
+    
+    # Navigate to the PIM page
+    navigate_to_pim_page(page)
+    
+    # Verify that we are on the PIM page
+    expect(page).to_have_url(orange_hrm_data["pim_page_url"])
+
+
+@pytest.mark.positive
+def test_search_in_side_bar(page: Page, load_base_url):
+    """
+    Test to verify the search functionality in the sidebar of the OrangeHRM dashboard page.
+    """
+    load_base_url
+    # Perform login using the login page function
+    login_to_orange_hrm(page, orange_hrm_data["username"], orange_hrm_data["password"])
+    
+    # Verify that we are on the dashboard page after login
+    expect(page).to_have_url(orange_hrm_data["dashboard_page_url"])
+    
+    # Search for a menu item in the sidebar
+    search_in_side_bar(page, orange_hrm_data["side_bar_search_text"])
+    
+    # Verify that the expected menu item is visible in the search results (you may need to adjust this based on how results are displayed)
+    expect(page.locator(searched_menu_item)).to_be_visible()
+
+
+@pytest.mark.positive
+def test_user_profile_dropdown_list(page: Page, load_base_url):
+    """
+    Test to verify the options available in the user profile dropdown list on the OrangeHRM dashboard page.
+    """
+    load_base_url
+    # Perform login using the login page function
+    login_to_orange_hrm(page, orange_hrm_data["username"], orange_hrm_data["password"])
+    
+    # Verify that we are on the dashboard page after login
+    expect(page).to_have_url(orange_hrm_data["dashboard_page_url"])
+    
+    # Verify the options in the user profile dropdown list
+    verify_user_profile_dropdown_options(page, orange_hrm_data["user_profile_dropdown_list_text"])

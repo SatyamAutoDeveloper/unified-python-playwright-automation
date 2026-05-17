@@ -54,4 +54,5 @@ def load_base_url(page: Page):
     Navigates to the Base URL and yields the natively provided 'page' object.
     """
     print(f"Loading base URL: {BASE_URL}")
-    page.goto(BASE_URL, wait_until="load")
+    page.goto(BASE_URL, wait_until="networkidle")
+    page.wait_for_timeout(5000)  # Wait for 2 seconds to ensure the page is fully loaded
