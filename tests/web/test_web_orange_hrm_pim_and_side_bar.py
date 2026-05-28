@@ -6,7 +6,7 @@ from pages.web.pw_pim_and_sidebar_page import *
 orange_hrm_data = load_test_data("../testdata/orange_hrm_data.json")
 profile_photo_path = os.path.abspath("testdata/herbs.jpg")
 
-'''
+
 @pytest.mark.positive
 def test_verify_side_bar_functionality(page: Page, load_base_url):
     """
@@ -75,7 +75,7 @@ def test_user_profile_dropdown_list(page: Page, load_base_url):
     
     # Verify the options in the user profile dropdown list
     verify_user_profile_dropdown_options(page, orange_hrm_data["user_profile_dropdown_list_text"])
-'''
+
 
 @pytest.mark.positive
 def test_add_employee_in_pim_page(page: Page, load_base_url):
