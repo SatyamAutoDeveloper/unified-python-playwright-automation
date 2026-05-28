@@ -9,6 +9,10 @@
     "invalid_login_error_message": "Invalid credentials",
     "user_profile_dropdown_list_text": ["About", "Support", "Change Password", "Logout"],
     "pim_page_url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewEmployeeList",
-    "side_bar_search_text": "Leave"
+    "side_bar_search_text": "Leave",
+    "first_name": "John",
+    "last_name": "Doe",
+    "employee_id": "EMP010",
+    "created_employee_url": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewPersonalDetails/empNumber/EMP010"
 
 }

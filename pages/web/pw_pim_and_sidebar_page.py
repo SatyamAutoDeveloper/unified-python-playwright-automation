@@ -84,3 +84,119 @@ def verify_user_profile_dropdown_options(page, expected_options):
     for option in expected_options:
         if option not in dropdown_options:
             raise Exception(f"Expected option '{option}' not found in user profile dropdown.")
+
+
+def add_employee(page, first_name, last_name, employee_id):
+    """
+    Creates a new employee in the PIM page.
+    """
+    navigate_to_pim_page(page)  # Ensure we are on the PIM page before trying to create an employee
+    # Click on the "Add Employee" link
+    page.get_by_role("link", name=add_employee_link).click()
+    page.wait_for_timeout(5000)  # Wait for 5 seconds to ensure the form is fully loaded and interactable
+    # Fill in the first name and last name input fields
+    try:
+        first_name_locator = page.get_by_role("textbox", name=first_name_input_box)
+        last_name_locator = page.get_by_role("textbox", name=last_name_input_box)
+        employee_id_locator = page.locator(employee_id_input_box)
+
+        if not first_name_locator:
+            raise Exception("First name input locator could not be resolved.")
+        if not last_name_locator:
+            raise Exception("Last name input locator could not be resolved.")
+        if not employee_id_locator:
+            raise Exception("Employee ID input locator could not be resolved.")
+
+        first_name_locator.fill(first_name)
+        last_name_locator.fill(last_name)
+        # Clear the employee ID input box before filling it with the new employee ID
+        # Use try/except around clear/fill in case the control does not support clear()
+        try:
+            employee_id_locator.clear()
+        except Exception:
+            # Some input implementations may not have clear(); ignore and proceed to fill
+            pass
+        page.locator(employee_id_focused_input_box).fill(employee_id)
+    except AttributeError as e:
+        raise Exception(f"Unable to interact with input fields: {e}")
+
+    # Click the "Save" button to create the employee
+    page.get_by_role("button", name=save_btn).click()  
+
+
+def search_employee_in_employee_list(page, employee_id):
+    """
+    Searches for an employee in the employee list based on the employee ID.
+    """
+    navigate_to_pim_page(page)  # Ensure we are on the PIM page before trying to search for an employee
+    # Click on the "Employee List" link to view the list of employees
+    page.get_by_role("link", name=employee_list_link).click()
+    
+    # Wait for the employee list to load
+    page.wait_for_timeout(5000)  # Wait for 5 seconds to ensure the employee list is loaded
+
+    # Search for the employee in the list using the search functionality
+    page.locator(employee_id_input_box).fill(employee_id)  # Fill the employee ID in the search input
+    page.get_by_role("button", name=search_btn).click()  # Click the search button to filter the employee list
+
+    # Wait for search results to appear
+    page.wait_for_timeout(3000)  # Wait for 3 seconds to ensure the search results are loaded
+    # Check if the employee is visible in the search results
+    employee_locator = page.locator(table_row)
+    if not employee_locator.is_visible():
+        raise Exception(f"Employee with ID '{employee_id}' not found in the employee list - cannot delete.")
+    print(f"Employee with ID '{employee_id}' found in the employee list.")
+    return employee_locator
+
+
+def upload_profile_photo_for_employee(page, photo_path):
+    """
+    Uploads a profile photo for an employee in the PIM page.
+    """
+    # Click on the profile avatar to open the profile photo options
+    page.locator(edit_icon).click()
+    page.locator(profile_avatar).click()
+    
+    # Click on the "Add Profile Photo" button to open the file upload dialog
+    #page.locator(add_profile_photo_btn).wait_for(state="visible", timeout=5000).click()
+    
+    # Use the file chooser to select the photo to upload
+    with page.expect_file_chooser() as file_chooser_info:
+        page.locator(add_profile_photo_btn).click()  # Click again to trigger the file chooser
+    file_chooser = file_chooser_info.value
+    file_chooser.set_files(photo_path)  # Set the file path for the photo to upload
+
+    page.get_by_role("button", name="Save").click()  # Click the "Save" button to save the uploaded profile photo
+    page.wait_for_timeout(3000)  # Wait for 3 seconds to ensure the changes are saved and the photo is displayed in the profile avatar
+    print(f"Profile photo uploaded successfully from path: {photo_path}")
+
+
+def get_employee_from_employee_list(page, employee_id):
+    """
+    Retrieves an employee from the employee list based on the full name.
+    """
+    employee_locator = search_employee_in_employee_list(page, employee_id)  # Search for the employee in the list first
+    employee_data = employee_locator.all_text_contents()
+    print(f"Employee with ID '{employee_id}' found in the employee list.")
+    return employee_data
+
+
+def delete_employee_from_employee_list(page, employee_id):
+    """
+    Deletes an employee from the employee list based on the employee ID.
+    """
+    employee_locator = search_employee_in_employee_list(page, employee_id)  # Search for the employee in the list first to ensure it exists before trying to delete
+    
+    # Click on the delete icon for the employee
+    page.locator(delete_icon).click()
+    
+    # Confirm deletion in the popup dialog
+    page.get_by_role("button", name=confirm_delete_btn).click()
+
+    # Wait for deletion to complete and verify that the employee is no longer visible in the list
+    page.wait_for_timeout(5000)  # Wait for 5 seconds to ensure the deletion is complete and the page is updated
+    if employee_locator.is_visible():
+        raise Exception(f"Employee with ID '{employee_id}' was not deleted successfully.")
+    
+    print(f"Employee with ID '{employee_id}' deleted successfully from the employee list.")
+   
