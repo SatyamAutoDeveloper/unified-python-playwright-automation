@@ -91,6 +91,9 @@ def add_employee(page, first_name, last_name, employee_id):
     Creates a new employee in the PIM page.
     """
     navigate_to_pim_page(page)  # Ensure we are on the PIM page before trying to create an employee
+
+    if not page.get_by_role("link", name=add_employee_link).is_visible():
+        page.get_by_text(more_btn, exact=True).click()
     # Click on the "Add Employee" link
     page.get_by_role("link", name=add_employee_link).click()
     page.wait_for_timeout(5000)  # Wait for 5 seconds to ensure the form is fully loaded and interactable
@@ -129,6 +132,9 @@ def search_employee_in_employee_list(page, employee_id):
     Searches for an employee in the employee list based on the employee ID.
     """
     navigate_to_pim_page(page)  # Ensure we are on the PIM page before trying to search for an employee
+
+    if not page.get_by_role("link", name=employee_list_link).is_visible():
+        page.get_by_text(more_btn, exact=True).click()
     # Click on the "Employee List" link to view the list of employees
     page.get_by_role("link", name=employee_list_link).click()
     

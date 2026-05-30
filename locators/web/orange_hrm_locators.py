@@ -1,3 +1,4 @@
+from playwright.sync_api import Page
 
 #login page locators
 username_input_box = "input[name='username']"
@@ -19,6 +20,7 @@ searched_menu_item = "span:has-text('Leave')"
 user_profile_dropdown_list = ".oxd-dropdown-menu li"
 
 #pim page locators
+more_btn = "More"
 add_employee_link = "Add Employee"
 first_name_input_box = "First Name"
 last_name_input_box = "Last Name"

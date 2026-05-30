@@ -58,7 +58,7 @@ def test_search_in_side_bar(page: Page, load_base_url):
     search_in_side_bar(page, orange_hrm_data["side_bar_search_text"])
     
     # Verify that the expected menu item is visible in the search results (you may need to adjust this based on how results are displayed)
-    expect(page.locator(searched_menu_item)).to_be_visible()
+    expect(page.get_by_text("Leave", exact=True)).to_be_visible()
 
 
 @pytest.mark.positive
