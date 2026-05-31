@@ -2,6 +2,8 @@ import sys
 import pytest
 from pathlib import Path
 from playwright.sync_api import Page, sync_playwright
+from pages.web.pw_login_page import OrangeHrmLoginPage
+from pages.web.pw_pim_and_sidebar_page import OrangeHrmPimAndSideBarPage
 from configparser import ConfigParser
 
 sys.dont_write_bytecode = True
@@ -49,10 +51,22 @@ def browser_context_args(browser_context_args):
 
 # --- Custom Helper Fixtures ---
 @pytest.fixture(scope="function")
-def load_base_url(page: Page):
+def login_page(page: Page):
     """
     Navigates to the Base URL and yields the natively provided 'page' object.
     """
     print(f"Loading base URL: {BASE_URL}")
     page.goto(BASE_URL, wait_until="networkidle")
     page.wait_for_timeout(5000)  # Wait for 2 seconds to ensure the page is fully loaded
+    return OrangeHrmLoginPage(page)
+
+
+@pytest.fixture(scope="function")
+def pim_page_and_side_bar(page: Page):
+    """
+    Navigates to the Base URL and yields the natively provided 'page' object.
+    """
+    print(f"Loading base URL: {BASE_URL}")
+    page.goto(BASE_URL, wait_until="networkidle")
+    page.wait_for_timeout(5000)  # Wait for 2 seconds to ensure the page is fully loaded
+    return OrangeHrmPimAndSideBarPage(page)
