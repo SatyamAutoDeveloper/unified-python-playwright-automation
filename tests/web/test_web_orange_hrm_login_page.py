@@ -4,7 +4,7 @@ from helpers.pw_common_helpers import *
 from pages.web.pw_login_page import *
 from locators.web.orange_hrm_locators import *
 
-orange_hrm_data = load_test_data("../../testdata/web/orange_hrm_data.json")
+orange_hrm_data = load_test_data("../testdata/WEB/orange_hrm_data.json")
 
 
 @pytest.mark.positive
