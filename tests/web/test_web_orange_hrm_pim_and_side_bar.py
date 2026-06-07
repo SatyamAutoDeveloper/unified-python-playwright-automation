@@ -4,7 +4,7 @@ from pages.web.pw_login_page import *
 from pages.web.pw_pim_and_sidebar_page import *
 from helpers.pw_common_helpers import *
 
-orange_hrm_data = load_test_data("../testdata/web/orange_hrm_data.json")
+orange_hrm_data = load_test_data("../../testdata/web/orange_hrm_data.json")
 profile_photo_path = os.path.abspath("testdata/web/herbs.jpg")
 
 
