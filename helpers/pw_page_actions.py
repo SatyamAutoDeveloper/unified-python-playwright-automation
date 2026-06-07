@@ -1,13 +1,5 @@
-import json
-import os
 from playwright.sync_api import Page, expect
 
-def load_test_data(file_name):
-    """Utility function to load test data from a JSON file"""
-    file_path = os.path.join(os.path.dirname(__file__), file_name)
-    print(f"Loading json testdata from {file_path}")
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 def find_element(page: Page, selector: str):
     """
