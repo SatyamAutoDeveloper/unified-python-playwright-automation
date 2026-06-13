@@ -1,8 +1,9 @@
 import configparser
 import os
+from pathlib import Path
 
 
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(__file__), '../config.ini')
+CONFIG_FILE_PATH = Path(__file__).resolve().parent.parent / 'config.ini'
 
 
 def load_config(config_path):

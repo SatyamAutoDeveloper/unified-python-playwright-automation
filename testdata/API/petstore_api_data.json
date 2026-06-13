@@ -51,7 +51,7 @@
 
     "ADD_PET_IMAGE": {
         "petId": 10,
-        "file": "./testdata/petstore/German_Shepherd.jpg"
+        "file": "./testdata/api/German_Shepherd.jpg"
     },
 
     "ORDER_PET": {

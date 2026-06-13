@@ -1,7 +1,8 @@
 import sys
 import pytest
 from pathlib import Path
-from playwright.sync_api import Page, sync_playwright
+import json
+from playwright.sync_api import Page, sync_playwright, APIRequestContext
 from pages.web.pw_login_page import OrangeHrmLoginPage
 from pages.web.pw_pim_and_sidebar_page import OrangeHrmPimAndSideBarPage
 from api_clients.pet_store_client import PetStoreClient
@@ -74,3 +75,26 @@ def pim_page_and_side_bar(page: Page):
 def pet_store_client():
     """Fixture to provide an instance of the PetStoreClient."""
     return PetStoreClient()
+
+
+@pytest.fixture(autouse=True)
+def patch_api_request_context_json_support(monkeypatch):
+    def patch_method(method):
+        def wrapper(self, url, **kwargs):
+            if 'json' in kwargs:
+                json_payload = kwargs.pop('json')
+                if 'data' in kwargs or 'body' in kwargs:
+                    raise TypeError("Cannot specify both json and data/body")
+                kwargs['data'] = json.dumps(json_payload)
+                headers = kwargs.get('headers') or {}
+                if isinstance(headers, dict):
+                    if not any(k.lower() == 'content-type' for k in headers):
+                        headers['Content-Type'] = 'application/json'
+                kwargs['headers'] = headers
+            return method(self, url, **kwargs)
+        return wrapper
+
+    for verb in ["post", "put", "patch"]:
+        original = getattr(APIRequestContext, verb)
+        monkeypatch.setattr(APIRequestContext, verb, patch_method(original))
+    yield
