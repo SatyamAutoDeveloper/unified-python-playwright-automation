@@ -1,5 +1,8 @@
 import base64
-import requests
+import json
+import mimetypes
+from pathlib import Path
+from playwright.sync_api import APIRequestContext, sync_playwright
 from helpers.pw_api_helpers import extract_base_url
 
 class BasicAuth:
@@ -15,71 +18,78 @@ class BasicAuth:
             "Accept": "application/json",
             "Authorization": f"Basic {encoded_credentials}",
         }
-    
-    
+
+
 class PetStoreClient:
-    def __init__(self):
+    def __init__(self, request_context: APIRequestContext = None):
         self.base_url = extract_base_url("PETSTOREAPI").strip('"').strip("'")
-        self.pet_endpoint = f"{self.base_url}/pet"
-        self.store_endpoint = f"{self.base_url}/store"
+        self.pet_endpoint = f"{self.base_url}/v2/pet"
+        self.store_endpoint = f"{self.base_url}/v2/store"
+        self._external_request_context = request_context is not None
+
+        if request_context:
+            self.api_context = request_context
+            self._playwright = None
+        else:
+            self._playwright = sync_playwright().start()
+            self.api_context = self._playwright.request.new_context(base_url=self.base_url)
 
     def get_pets_by_status(self, status):
         """Sends a GET request to retrieve pets by status."""
-        url = f"{self.pet_endpoint}/findByStatus?status={status}"
-        response = requests.get(url)
-        return response
+        return self.api_context.get("/v2/pet/findByStatus", params={"status": status})
 
     def get_pet_by_id(self, pet_id):
         """Sends a GET request to retrieve a specific pet by ID."""
-        url = f"{self.pet_endpoint}/{pet_id}"
-        response = requests.get(url)
-        return response
+        return self.api_context.get(f"/v2/pet/{pet_id}")
 
     def create_pet(self, payload):
         """Sends a POST request to create a new pet."""
-        response = requests.post(self.pet_endpoint, json=payload)
-        return response
+        return self.api_context.post("/v2/pet", json=payload)
 
     def update_pet(self, payload):
         """Sends a PUT request to update an existing pet."""
-        response = requests.put(self.pet_endpoint, json=payload)
-        return response
+        return self.api_context.put("/v2/pet", json=payload)
 
     def delete_pet(self, pet_id):
         """Sends a DELETE request to remove a pet."""
-        url = f"{self.pet_endpoint}/{pet_id}"
-        response = requests.delete(url)
-        return response
-    
+        return self.api_context.delete(f"/v2/pet/{pet_id}")
+
     def upload_pet_image(self, pet_id, image_path):
         """Sends a POST request to upload an image for a specific pet."""
-        url = f"{self.pet_endpoint}/{pet_id}/uploadImage"
-        with open(image_path, 'rb') as image_file:
-            files = {'file': image_file}
-            response = requests.post(url, files=files)
-        return response
-    
+        image_bytes = Path(image_path).read_bytes()
+        content_type, _ = mimetypes.guess_type(image_path)
+        multipart_payload = {
+            "file": {
+                "name": Path(image_path).name,
+                "buffer": image_bytes,
+                "mimeType": content_type or "image/jpeg",
+            }
+        }
+
+        return self.api_context.post(
+            f"/v2/pet/{pet_id}/uploadImage",
+            multipart=multipart_payload,
+        )
+
     def get_pet_inventory_by_status(self):
         """Sends a GET request to retrieve pet inventory by status."""
-        url = f"{self.store_endpoint}/inventory"
-        response = requests.get(url)
-        return response
-    
+        return self.api_context.get("/v2/store/inventory")
+
     def create_order(self, payload):
         """Sends a POST request to create a new order."""
-        url = f"{self.store_endpoint}/order"
-        response = requests.post(url, json=payload)
-        return response
-    
+        return self.api_context.post("/v2/store/order", json=payload)
+
     def get_order_by_id(self, order_id):
         """Sends a GET request to retrieve a specific order by ID."""
-        url = f"{self.store_endpoint}/order/{order_id}"
-        response = requests.get(url)
-        return response
-    
+        return self.api_context.get(f"/v2/store/order/{order_id}")
+
     def delete_order(self, order_id):
         """Sends a DELETE request to remove an order."""
-        url = f"{self.store_endpoint}/order/{order_id}"
-        response = requests.delete(url)
-        return response
+        return self.api_context.delete(f"/v2/store/order/{order_id}")
+
+    def close(self):
+        if self.api_context:
+            self.api_context.dispose()
+        if self._playwright:
+            self._playwright.stop()
     
