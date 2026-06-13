@@ -3,8 +3,7 @@ import logging
 from helpers.pw_common_helpers import load_test_data
 
 logger = logging.getLogger(__name__)
-payload = load_test_data("../testdata/api/petstore_api_data.json")
-created_pet_id = None
+payload = load_test_data("../testdata/API/petstore_api_data.json")
 
 @pytest.mark.api
 @pytest.mark.smoke
