@@ -2,6 +2,9 @@ name: Fast Shopping Mobile App Tests
 permissions:
   contents: read
 
+env:
+  APPIUM_HOME: ${{ github.workspace }}/.appium
+
 on:
   workflow_dispatch:
 
@@ -27,14 +30,15 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.13.0'
+        node-version: '20'
     
     - name: Install Python & Appium Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        npm install -g appium
+        npm install -g appium @appium/logger
         appium driver install uiautomator2
+        appium driver list --installed
 
     - name: Verify APK exists
       run: |
@@ -69,7 +73,7 @@ jobs:
           adb wait-for-device
           
           # Run tests and capture result
-          pytest tests/test_fast_shopping_app.py
+          pytest tests/mobile/test_fast_shopping_app.py
           TEST_RESULT=$?
           
           # Force kill all appium/node processes
