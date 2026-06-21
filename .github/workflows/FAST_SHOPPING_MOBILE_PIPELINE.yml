@@ -69,7 +69,7 @@ jobs:
           adb wait-for-device
           
           # Run tests and capture result
-          pytest tests/test_fast_shopping_app.py
+          pytest tests/mobile/test_fast_shopping_app.py
           TEST_RESULT=$?
           
           # Force kill all appium/node processes
