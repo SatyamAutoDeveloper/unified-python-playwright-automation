@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          pytest tests/web -vs
+          pytest tests/web -vs --screenshot=only-on-failure --video=retain-on-failure --tracing=retain-on-failure
 
       - name: Create artifacts archive
         if: always()

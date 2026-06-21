@@ -23,12 +23,12 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          pytest tests/api -vs
+          pytest tests/api
 
       - name: Create artifacts archive
         if: always()
         run: |
-          zip -r test-artifacts.zip test-results/ || true
+          zip -r test-artifacts.zip reports/ logs/ || true
 
       - name: Upload artifacts
         if: always()
