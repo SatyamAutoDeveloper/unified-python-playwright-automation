@@ -43,7 +43,11 @@ def browser_type_launch_args(browser_type_launch_args, browser_name):
         print("Launching Chromium...................................")
         return {
             **browser_type_launch_args,
-            "args": ["--disable-blink-features=AutomationControlled", "--start-maximized"],
+            "args": [
+                "--disable-blink-features=AutomationControlled",
+                "--start-maximized",
+                "--window-size=1920,1080",
+            ],
         }
     return browser_type_launch_args
 
@@ -64,8 +68,10 @@ def login_page(page: Page):
     Navigates to the Base URL and yields the natively provided 'page' object.
     """
     print(f"Loading base URL: {BASE_URL}")
-    page.goto(BASE_URL, wait_until="networkidle")
-    page.wait_for_timeout(5000)  # Wait for 2 seconds to ensure the page is fully loaded
+    page.goto(BASE_URL, wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_load_state("load", timeout=60000)
+    page.wait_for_selector("input[name='username']", timeout=60000)
+    page.wait_for_selector("input[name='password']", timeout=60000)
     return OrangeHrmLoginPage(page)
 
 

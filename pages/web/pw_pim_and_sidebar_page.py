@@ -1,3 +1,4 @@
+from ai_agents.auto_healer import AutoHealer
 from locators.web import orange_hrm_locators
 
 class OrangeHrmPimAndSideBarPage:
@@ -6,7 +7,7 @@ class OrangeHrmPimAndSideBarPage:
 
     def get_element(self, locator_def):
         """Helper to resolve the static LC definition into a real Playwright locator."""
-        return locator_def.resolve(self.page)
+        return AutoHealer.resolve_or_heal(self.page, locator_def)
     
     def verify_side_bar_functionality(self):
         """
@@ -102,7 +103,7 @@ class OrangeHrmPimAndSideBarPage:
             #self.get_element(orange_hrm_locators.more_btn).click()
         # Click on the "Add Employee" link
         self.get_element(orange_hrm_locators.add_employee_link).click()
-        page.wait_for_timeout(5000)  # Wait for 5 seconds to ensure the form is fully loaded and interactable
+        page.wait_for_timeout(10000)  # Wait for 10 seconds to ensure the form is fully loaded and interactable
         # Fill in the first name and last name input fields
         try:
             first_name_locator = self.get_element(orange_hrm_locators.first_name_input_box)

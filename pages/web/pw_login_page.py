@@ -1,3 +1,4 @@
+from ai_agents.auto_healer import AutoHealer
 from locators.web import orange_hrm_locators
 
 
@@ -7,7 +8,7 @@ class OrangeHrmLoginPage:
 
     def get_element(self, locator_def):
         """Helper to resolve the static LC definition into a real Playwright locator."""
-        return locator_def.resolve(self.page)
+        return AutoHealer.resolve_or_heal(self.page, locator_def)
 
     def login_to_orange_hrm(self, username: str, password: str):
         """

@@ -22,7 +22,7 @@ user_profile_dropdown_list = LC.locator(".oxd-dropdown-menu li")
 
 #pim page locators
 more_btn = LC.get_by_text("More")
-add_employee_link = LC.get_by_text("Add Employee")
+add_employee_link = LC.locator("li:has-text('Add Employee')")
 first_name_input_box = LC.get_by_placeholder("First Name")
 last_name_input_box = LC.get_by_placeholder("Last Name")
 employee_id_input_box = LC.locator("//div[@class='oxd-input-group oxd-input-field-bottom-space']//div//input[@class='oxd-input oxd-input--active']")
