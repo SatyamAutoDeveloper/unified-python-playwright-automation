@@ -11,3 +11,5 @@ tests/__init__.py
 test-results/
 reports/
 logs/
+screenshots/
+.venv/

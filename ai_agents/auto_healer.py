@@ -185,17 +185,47 @@ def _build_ollama_client() -> Any:
         raise RuntimeError(f"Unable to initialize Ollama client: {exc}") from exc
 
 
+def _extract_page_context(page: Any, locator_key: str, max_length: int = 2000) -> str:
+    """Extract relevant HTML context from the page, focusing on attributes that match the locator."""
+    try:
+        page_html = page.content() if hasattr(page, "content") else str(page)
+        
+        # Try to find relevant HTML snippets based on the locator key
+        normalized_key = locator_key.lower()
+        
+        # Extract key patterns from the locator (class names, attributes, etc.)
+        patterns = re.findall(r'[\.#\[\]A-Za-z0-9_=-]+', normalized_key)
+        
+        relevant_snippets = []
+        for pattern in patterns[:5]:  # Limit pattern matching
+            # Search for matching elements in HTML
+            pattern_escaped = re.escape(pattern.strip('[]'))
+            matches = re.findall(f".{{0,100}}{pattern_escaped}.{{0,100}}", page_html, re.IGNORECASE)
+            relevant_snippets.extend(matches[:2])
+        
+        context = "\n".join(relevant_snippets[:10])
+        return context[:max_length] if context else page_html[:max_length]
+    except Exception as e:
+        logger.debug("Error extracting page context: %s", e)
+        page_html = page.content() if hasattr(page, "content") else str(page)
+        return page_html[:max_length]
+
+
 def _local_llm_heal_locator(page: Any, locator_key: str) -> str:
     logger.info("Starting locator healing for: %s", locator_key)
-    page_html = page.content() if hasattr(page, "content") else str(page)
+    
+    # Extract relevant context instead of full page HTML
+    page_context = _extract_page_context(page, locator_key, max_length=1500)
+    
+    # Craft a focused prompt that won't confuse the model
     prompt = (
-        "You are a Playwright locator repair assistant. "
-        "Given a broken locator and the current page HTML, return a single replacement locator string "
-        "that should work with Playwright's page.locator(...) or locator(...) methods. "
-        "Return only the locator string, with no explanation.\n\n"
-        f"Broken locator: {locator_key}\n\n"
-        "Page HTML:\n"
-        f"{page_html[:15000]}"
+        "You are a Playwright locator repair expert. Your task is to suggest a single CSS or XPath selector "
+        "that works with Playwright's page.locator() method.\n\n"
+        f"Original locator: {locator_key}\n\n"
+        "Respond with ONLY the locator string (e.g., 'div.table-row', '//button[@type=\"submit\"]'), "
+        "no explanation or markdown.\n\n"
+        "Relevant HTML snippets:\n"
+        f"{page_context}"
     )
 
     try:
@@ -205,7 +235,7 @@ def _local_llm_heal_locator(page: Any, locator_key: str) -> str:
             model=HEALER_MODEL,
             messages=[{"role": "user", "content": prompt}],
             stream=False,
-            options={"num_predict": HEALER_MAX_NEW_TOKENS},
+            options={"num_predict": HEALER_MAX_NEW_TOKENS, "temperature": 0.1},
         )
         content = _extract_content_from_response(response)
     except TypeError:
@@ -213,7 +243,7 @@ def _local_llm_heal_locator(page: Any, locator_key: str) -> str:
             model=HEALER_MODEL,
             prompt=prompt,
             stream=False,
-            options={"num_predict": HEALER_MAX_NEW_TOKENS},
+            options={"num_predict": HEALER_MAX_NEW_TOKENS, "temperature": 0.1},
         )
         content = _extract_content_from_response(response)
     except Exception as exc:
