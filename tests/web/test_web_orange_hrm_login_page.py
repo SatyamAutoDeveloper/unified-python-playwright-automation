@@ -10,7 +10,7 @@ orange_hrm_data = load_test_data("../testdata/WEB/orange_hrm_data.json")
 @pytest.mark.positive
 def test_valid_login_functionality(login_page, page: Page):
     login_page.login_to_orange_hrm(orange_hrm_data["username"], orange_hrm_data["password"])
-    page.wait_for_load_state("networkidle")
+    page.wait_for_load_state("load", timeout=60000)
     print(f"Current page Title after login: {page.title()}")
     expect(page).to_have_title(orange_hrm_data["dashboard_page_title"])
 

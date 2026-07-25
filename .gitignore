@@ -9,3 +9,5 @@ tests/__init__.py
 .pytest_cache/
 .DS_Store
 test-results/
+reports/
+logs/
