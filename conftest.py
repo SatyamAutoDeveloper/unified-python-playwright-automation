@@ -5,14 +5,12 @@ import pytest
 from pathlib import Path
 import json
 import logging
-from appium import webdriver
-from appium.options.android import UiAutomator2Options
 from playwright.sync_api import Page, sync_playwright, APIRequestContext
-from helpers.native_app_actions import MobileActions
 from pages.web.pw_login_page import OrangeHrmLoginPage
 from pages.web.pw_pim_and_sidebar_page import OrangeHrmPimAndSideBarPage
 from api_clients.pet_store_client import PetStoreClient
 from configparser import ConfigParser
+from ai_agents.failure_analyzer import failure_analyzer_agent
 
 sys.dont_write_bytecode = True
 
@@ -116,7 +114,10 @@ def patch_api_request_context_json_support(monkeypatch):
 def android_driver(request):
     """
     Initializes the Appium UIAutomator2 driver for Android tests.
+    Imports are lazy-loaded to avoid import errors on web-only test runs.
     """
+    from appium import webdriver
+    from appium.options.android import UiAutomator2Options
 
     options = UiAutomator2Options()
     options.platform_name = "Android"
@@ -143,58 +144,103 @@ def android_driver(request):
 
 @pytest.fixture(scope="function")
 def NativeDriver(android_driver):
+    from helpers.native_app_actions import MobileActions
     return MobileActions(android_driver)
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_runtest_makereport(item):
+def pytest_runtest_makereport(item, call):
     """
-    Pytest hook to attach the report object (rep_call, rep_setup, etc.) to the test item.
-    This allows fixtures to inspect the test result, specifically for failure detection.
+    Pytest hook to attach the report object to the test item, capture screenshots, 
+    and trigger the AI failure analyzer on failure.
     """
     pytest_html = item.config.pluginmanager.getplugin('html')
     outcome = yield
     report = outcome.get_result()
     extra = getattr(report, 'extra', [])
+    
     # Check if the test failed during the 'call' phase (the actual test execution)
     if report.when == 'call' and report.failed:
-        # Access the driver instance from the test function's arguments
-        try:
-            driver = item.funcargs['android_driver']
-            # 2. Get the screenshot as Base64 encoded PNG
-            screenshot_base64 = driver.get_screenshot_as_base64()
-            if isinstance(screenshot_base64, bytes):
-                screenshot_base64 = screenshot_base64.decode('utf-8')
-            # 3. Embed the Base64 image into the HTML report
-            # The extras.png method handles embedding a base64 encoded image string
-            extra.append(pytest_html.extras.png(screenshot_base64, name="Failure Screenshot"))
-            
-            # 4. Update the report's extra list
-            report.extra = extra
-
-            print("\nScreenshot successfully embedded in HTML report.")
-        except KeyError:
-            # Handle cases where the 'driver' fixture isn't used
-            print("\nWebDriver fixture 'driver' not found for screenshot.")
-            return
-        except Exception as e:
-            print(f"\nFailed to capture screenshot: {e}")
-            return
-
-        # Create a unique filename with the test name and a timestamp
-        test_name = item.name.replace('/', '_').replace(':', '_') # Clean up name for filename
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        screenshot_dir = pathlib.Path("screenshots")
-        screenshot_dir.mkdir(exist_ok=True) # Create 'screenshots' directory if it doesn't exist
         
-        screenshot_filename = str(screenshot_dir / f"FAIL_{test_name}_{timestamp}.png")
+        # ==========================================
+        # 1. EXISTING LOGIC: Appium Screenshot Capture
+        # ==========================================
+        if 'android_driver' in item.funcargs:
+            try:
+                driver = item.funcargs['android_driver']
+                
+                # Get the screenshot as Base64 encoded PNG for HTML report
+                screenshot_base64 = driver.get_screenshot_as_base64()
+                if isinstance(screenshot_base64, bytes):
+                    screenshot_base64 = screenshot_base64.decode('utf-8')
+                
+                if pytest_html:
+                    extra.append(pytest_html.extras.png(screenshot_base64, name="Failure Screenshot"))
+                
+                # Save local PNG screenshot
+                test_name = item.name.replace('/', '_').replace(':', '_') 
+                timestamp = time.strftime("%Y%m%d_%H%M%S")
+                screenshot_dir = pathlib.Path("screenshots")
+                screenshot_dir.mkdir(exist_ok=True) 
+                
+                screenshot_filename = str(screenshot_dir / f"FAIL_{test_name}_{timestamp}.png")
+                driver.save_screenshot(screenshot_filename)
+                print(f"\nScreenshot saved: {screenshot_filename}")
+                
+            except Exception as e:
+                print(f"\nFailed to capture Appium screenshot: {e}")
+
+
+        # ==========================================
+        # 2. NEW LOGIC: Context Gathering for AI
+        # ==========================================
+        error_trace = str(call.excinfo.getrepr(style="short")) if call.excinfo else "No stack trace available."
         
-        # Take the screenshot
-        try:
-            driver.save_screenshot(screenshot_filename)
-            print(f"\nScreenshot saved: {screenshot_filename}")
-        except Exception as e:
-            print(f"\nFailed to take screenshot: {e}")
+        mobile_context = ""
+        ui_context = ""
+        
+        # Grab Mobile DOM if it was an Appium test
+        if 'android_driver' in item.funcargs:
+            try:
+                drv = item.funcargs['android_driver']
+                mobile_context = f"Activity: {drv.current_activity}\nPage Source: {drv.page_source[:1000]}"
+            except Exception:
+                pass
+                
+        # Grab Web DOM if it was a Playwright test
+        if 'page' in item.funcargs:
+            try:
+                page = item.funcargs['page']
+                ui_context = f"URL: {page.url}\nDOM Snippet: {page.content()[:1000]}"
+            except Exception:
+                pass
+
+        # Build the final prompt
+        llm_prompt = f"Test Name: {item.nodeid}\nError Trace:\n{error_trace}\n"
+        if mobile_context:
+            llm_prompt += f"\nMobile Context (Truncated):\n{mobile_context}"
+        if ui_context:
+            llm_prompt += f"\nWeb UI Context (Truncated):\n{ui_context}"
+
+        # ==========================================
+        # 3. TRIGGER AI & ATTACH TO REPORTS
+        # ==========================================
+        print("\n🤖 Sending failure context to AI Analyzer...")
+        
+        # Call the agent you imported at the top of the file
+        ai_analysis = failure_analyzer_agent(llm_prompt)
+        formatted_analysis = json.dumps(ai_analysis, indent=2)
+        
+        # Attach to terminal output (Pytest native report)
+        report.sections.append(("🤖 AI Failure Analysis", formatted_analysis))
+        
+        # Attach directly into the pytest-html report
+        if pytest_html:
+            html_snippet = f"<div><h4>🤖 AI Failure Analysis</h4><pre style='background:#f4f4f4; padding:10px; border-radius:5px;'>{formatted_analysis}</pre></div>"
+            extra.append(pytest_html.extras.html(html_snippet))
+
+        # Finally, update the report's extra list so pytest-html renders it
+        report.extra = extra
 
 
 @pytest.fixture(scope="function", autouse=True)
