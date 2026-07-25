@@ -21,6 +21,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.ai/install.sh | sh
+          ollama --version
+
+      - name: Start Ollama service
+        run: |
+          ollama serve &
+          sleep 10
+
+      - name: Pull Ollama model
+        run: |
+          ollama pull qwen2.5-coder:7b
+
       - name: Install Playwright browsers
         run: |
           python -m playwright install
@@ -32,7 +46,7 @@ jobs:
       - name: Create artifacts archive
         if: always()
         run: |
-          zip -r test-artifacts.zip test-results/ || true
+          zip -r test-artifacts.zip test-results/ reports/ logs/ screenshots/ || true
 
       - name: Upload artifacts
         if: always()

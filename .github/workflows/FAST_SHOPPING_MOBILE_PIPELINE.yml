@@ -40,6 +40,20 @@ jobs:
         appium driver install uiautomator2
         appium driver list --installed
 
+    - name: Install Ollama
+      run: |
+        curl -fsSL https://ollama.ai/install.sh | sh
+        ollama --version
+
+    - name: Start Ollama service
+      run: |
+        ollama serve &
+        sleep 10
+
+    - name: Pull Ollama model
+      run: |
+        ollama pull qwen2.5-coder:7b
+
     - name: Verify APK exists
       run: |
         if [ ! -f ./apps/fastshopping.apk ]; then
