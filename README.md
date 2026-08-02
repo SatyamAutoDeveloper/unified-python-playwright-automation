@@ -21,7 +21,7 @@ This repository provides a Pytest-based automation framework for testing web app
 - [api_clients](api_clients) contains API client implementations
 - [config.ini](config.ini) stores environment URLs and app configuration
 - [testdata](testdata) contains JSON payloads and test data
-- [reports](reports), [logs](logs), and [screenshots](screenshots) store generated outputs
+- reports, logs, and screenshots store generated outputs
 
 ## AI agents in this repository
 
@@ -179,7 +179,7 @@ Before running mobile tests, make sure:
 
 - Appium is installed and running
 - An Android emulator is started or a device is connected
-- Refer to this [repository](https://github.com/SatyamAutoDeveloper/appium-python-mobile-app-automation) for setup details and command-line instructions to start the Appium server and emulator.
+- Refer to README.md of This Repository [https://github.com/SatyamAutoDeveloper/appium-python-mobile-app-automation](https://github.com/SatyamAutoDeveloper/appium-python-mobile-app-automation) for setup details and command-line instructions to start the Appium server and emulator.
 
 Then run:
 
@@ -200,10 +200,10 @@ pytest -vv
 
 When tests run, the framework generates:
 
-- HTML report in [reports/report.html](reports/report.html)
-- JUnit XML report in [reports/junit_results.xml](reports/junit_results.xml)
-- Logs in [logs](logs)
-- Screenshots in [screenshots](screenshots)
+- HTML report in [reports/report.html]
+- JUnit XML report in [reports/junit_results.xml]
+- Logs in [logs]
+- Screenshots in [screenshots]
 
 ## Troubleshooting tips
 
