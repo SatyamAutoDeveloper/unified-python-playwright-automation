@@ -179,17 +179,12 @@ Before running mobile tests, make sure:
 
 - Appium is installed and running
 - An Android emulator is started or a device is connected
+- Refer to this [repository](https://github.com/SatyamAutoDeveloper/appium-python-mobile-app-automation) for setup details and command-line instructions to start the Appium server and emulator.
 
 Then run:
 
 ```powershell
 pytest tests/mobile -q
-```
-
-### Run a specific test file
-
-```powershell
-pytest tests/web/test_web_orange_hrm_login_page.py -q
 ```
 
 ## Useful pytest options
